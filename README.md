@@ -23,10 +23,34 @@ A mobile-first web application for patient intake interviews powered by VAPI rea
 | Frontend | React 18 + Vite |
 | Styling | Tailwind CSS |
 | Voice AI | VAPI Real-time SDK |
-| Backend | Node.js + Express |
+| Backend | Vercel Serverless Functions |
 | Database | Supabase PostgreSQL |
 | AI Insights | OpenAI GPT-4 |
 | Deployment | Vercel |
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Vercel                                │
+│  ┌──────────────────┐    ┌────────────────────────────────┐ │
+│  │  React Frontend  │    │    Serverless Functions        │ │
+│  │   (client/dist)  │    │         (/api)                 │ │
+│  │                  │    │  ├── auth/login.js             │ │
+│  │  ┌────────────┐  │    │  ├── auth/register.js          │ │
+│  │  │ Voice Orb  │  │───▶│  ├── sessions/index.js         │ │
+│  │  │ Chat UI    │  │    │  ├── sessions/[id].js          │ │
+│  │  │ Dashboard  │  │    │  ├── insights/generate/[id].js │ │
+│  │  └────────────┘  │    │  └── webhook.js                │ │
+│  └──────────────────┘    └────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+           │                          │
+           ▼                          ▼
+    ┌─────────────┐          ┌─────────────────┐
+    │  VAPI API   │          │    Supabase     │
+    │  (WebRTC)   │          │   PostgreSQL    │
+    └─────────────┘          └─────────────────┘
+```
 
 ## Prerequisites
 
@@ -34,6 +58,7 @@ A mobile-first web application for patient intake interviews powered by VAPI rea
 - VAPI Account ([https://vapi.ai](https://vapi.ai))
 - Supabase Account ([https://supabase.com](https://supabase.com))
 - OpenAI API Key ([https://platform.openai.com](https://platform.openai.com))
+- Vercel CLI (optional, for local development)
 
 ## Quick Start
 
@@ -54,82 +79,141 @@ npm run install:all
 ### 3. Create VAPI Assistant
 
 1. Sign up at [vapi.ai](https://vapi.ai)
-2. Create a new assistant with the healthcare questionnaire configuration (see `server/lib/vapi.js`)
+2. Create a new assistant with the healthcare questionnaire configuration
 3. Copy your Assistant ID and Public Key
 
 ### 4. Configure Environment Variables
 
-Create `.env` files:
+Create `.env` file in the root directory:
 
-**client/.env**
 ```env
+# Client (also add to client/.env with VITE_ prefix)
 VITE_VAPI_PUBLIC_KEY=your_vapi_public_key
 VITE_VAPI_ASSISTANT_ID=your_assistant_id
-```
 
-**server/.env**
-```env
-PORT=3001
-NODE_ENV=development
-CLIENT_URL=http://localhost:5173
-
-VAPI_API_KEY=your_vapi_api_key
-VAPI_WEBHOOK_SECRET=your_webhook_secret
-
+# API (Serverless Functions)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your_service_role_key
-
 OPENAI_API_KEY=sk-your_openai_key
-
 JWT_SECRET=your_secure_random_string
 ```
 
 ### 5. Run Development Server
 
 ```bash
+# Install Vercel CLI if not installed
+npm i -g vercel
+
+# Run development server
 npm run dev
 ```
 
 - Frontend: http://localhost:5173
-- Backend: http://localhost:3001
+- API: http://localhost:3000/api
 
 ## Project Structure
 
 ```
 doctorAssistantAgent/
+├── api/                        # Vercel Serverless Functions
+│   ├── auth/
+│   │   ├── login.js           # POST /api/auth/login
+│   │   ├── register.js        # POST /api/auth/register
+│   │   └── me.js              # GET /api/auth/me
+│   ├── sessions/
+│   │   ├── index.js           # GET/POST /api/sessions
+│   │   ├── [sessionId].js     # GET/PATCH /api/sessions/:id
+│   │   └── [sessionId]/
+│   │       ├── end.js         # POST /api/sessions/:id/end
+│   │       └── insights.js    # GET /api/sessions/:id/insights
+│   ├── insights/
+│   │   └── generate/
+│   │       └── [sessionId].js # POST /api/insights/generate/:id
+│   ├── webhook.js             # POST /api/webhook (VAPI)
+│   ├── health.js              # GET /api/health
+│   └── lib/
+│       ├── supabase.js        # Database client
+│       ├── openai.js          # AI insights generation
+│       └── auth.js            # JWT utilities
 ├── client/                     # React Frontend
 │   ├── src/
-│   │   ├── components/         # UI Components
-│   │   │   ├── VoiceOrb/       # Animated voice indicator
-│   │   │   ├── ChatInterface/  # Text chat fallback
-│   │   │   └── Transcript/     # Conversation display
-│   │   ├── pages/              # Route pages
+│   │   ├── components/
+│   │   │   ├── VoiceOrb/      # Animated voice indicator
+│   │   │   ├── ChatInterface/ # Text chat fallback
+│   │   │   └── Transcript/    # Conversation display
+│   │   ├── pages/
 │   │   │   ├── PatientInterview.jsx
 │   │   │   ├── DoctorLogin.jsx
 │   │   │   ├── DoctorDashboard.jsx
 │   │   │   └── SessionDetail.jsx
-│   │   ├── hooks/
-│   │   │   └── useVapi.js      # VAPI SDK integration
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx # Doctor authentication
-│   │   └── services/
-│   │       └── api.js          # Backend API client
+│   │   ├── hooks/useVapi.js   # VAPI SDK integration
+│   │   ├── context/AuthContext.jsx
+│   │   └── services/api.js
 │   └── package.json
-├── server/                     # Node.js Backend
-│   ├── api/
-│   │   ├── auth.js             # Doctor authentication
-│   │   ├── sessions.js         # Patient sessions
-│   │   ├── insights.js         # AI insights
-│   │   └── webhook.js          # VAPI webhooks
-│   ├── lib/
-│   │   ├── supabase.js         # Database client
-│   │   ├── openai.js           # AI insights generation
-│   │   └── vapi.js             # VAPI configuration
-│   └── index.js
 ├── supabase/
-│   └── schema.sql              # Database schema
-├── vercel.json                 # Deployment config
+│   └── schema.sql             # Database schema
+├── vercel.json                # Vercel configuration
+├── package.json               # Root dependencies
 └── README.md
+```
+
+## API Endpoints
+
+### Public (Patient)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/sessions` | Create new session |
+| POST | `/api/sessions/:id/end` | End session with transcript |
+| PATCH | `/api/sessions/:id` | Update session |
+
+### Protected (Doctor - requires JWT)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/login` | Doctor login |
+| POST | `/api/auth/register` | Doctor registration |
+| GET | `/api/auth/me` | Get current doctor |
+| GET | `/api/sessions` | List all sessions |
+| GET | `/api/sessions/:id` | Get session details |
+| GET | `/api/sessions/:id/insights` | Get session insights |
+| POST | `/api/insights/generate/:id` | Generate AI insights |
+
+### Webhooks
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/webhook` | VAPI call events |
+
+## Deployment to Vercel
+
+### Option 1: Vercel CLI
+
+```bash
+# Login to Vercel
+vercel login
+
+# Deploy
+vercel
+
+# Set environment variables
+vercel env add SUPABASE_URL
+vercel env add SUPABASE_SERVICE_KEY
+vercel env add OPENAI_API_KEY
+vercel env add JWT_SECRET
+vercel env add VITE_VAPI_PUBLIC_KEY
+vercel env add VITE_VAPI_ASSISTANT_ID
+```
+
+### Option 2: GitHub Integration
+
+1. Push code to GitHub
+2. Import project in Vercel Dashboard
+3. Configure environment variables
+4. Deploy
+
+### Post-Deployment
+
+Set up VAPI webhook URL:
+```
+https://your-domain.vercel.app/api/webhook
 ```
 
 ## Questionnaire Flow
@@ -156,29 +240,6 @@ The system generates comprehensive insights including:
   - Mental health
   - Sleep apnea risk
 - **Recommendations**: AI-suggested follow-up actions
-
-## Deployment to Vercel
-
-1. Push to GitHub
-2. Connect repository to Vercel
-3. Configure environment variables in Vercel dashboard
-4. Set up VAPI webhook URL: `https://your-domain.vercel.app/api/webhook`
-
-## API Endpoints
-
-### Public (Patient)
-- `POST /api/sessions` - Create new session
-- `POST /api/sessions/:id/end` - End session with transcript
-
-### Protected (Doctor)
-- `POST /api/auth/login` - Doctor login
-- `POST /api/auth/register` - Doctor registration
-- `GET /api/sessions` - List all sessions
-- `GET /api/sessions/:id` - Get session details
-- `POST /api/insights/generate/:id` - Generate AI insights
-
-### Webhooks
-- `POST /api/webhook` - VAPI call events
 
 ## License
 

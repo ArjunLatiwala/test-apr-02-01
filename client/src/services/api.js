@@ -125,4 +125,3 @@ export async function registerDoctor(email, password, name) {
   
   return response.json()
 }
-
