@@ -81,7 +81,7 @@ export const createUser = async (input: RegisterInput): Promise<RegisteredUser> 
   };
 };
 
-export const login = async (userPayload: any) => {
+export const login = async (userPayload: { email?: string; password?: string }) => {
   const email = userPayload.email?.trim();
   const password = userPayload.password?.trim();
 
@@ -148,7 +148,16 @@ export const getCurrentUser = async (id: number) => {
   };
 };
 
-export const updateUser = async (userPayload: any, id: number) => {
+export const updateUser = async (
+  userPayload: {
+    email?: string;
+    username?: string;
+    password?: string;
+    image?: string;
+    bio?: string;
+  },
+  id: number,
+) => {
   const { email, username, password, image, bio } = userPayload;
   let hashedPassword;
 

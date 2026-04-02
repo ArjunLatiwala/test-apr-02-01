@@ -2,9 +2,10 @@ class HttpException extends Error {
   errorCode: number;
   constructor(
     errorCode: number,
-    public readonly message: string | any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public readonly message: any,
   ) {
-    super(message);
+    super(typeof message === 'string' ? message : JSON.stringify(message));
     this.errorCode = errorCode;
   }
 }

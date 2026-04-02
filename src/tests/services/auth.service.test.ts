@@ -1,6 +1,6 @@
+import prismaMock from '../prisma-mock';
 import * as bcrypt from 'bcryptjs';
 import { createUser, getCurrentUser, login, updateUser } from '../../app/routes/auth/auth.service';
-import prismaMock from '../prisma-mock';
 
 describe('AuthService', () => {
   describe('createUser', () => {
@@ -24,9 +24,8 @@ describe('AuthService', () => {
         demo: false,
       };
 
-      // When
-      // @ts-ignore
-      prismaMock.user.create.mockResolvedValue(mockedResponse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.create.mockResolvedValue(mockedResponse as any);
 
       // Then
       await expect(createUser(user)).resolves.toHaveProperty('token');
@@ -95,7 +94,8 @@ describe('AuthService', () => {
       };
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(mockedExistingUser);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedExistingUser as any);
 
       // Then
       const error = { email: ['has already been taken'] }.toString();
@@ -125,7 +125,8 @@ describe('AuthService', () => {
       };
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(mockedResponse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedResponse as any);
 
       // Then
       await expect(login(user)).resolves.toHaveProperty('token');
@@ -163,7 +164,8 @@ describe('AuthService', () => {
       };
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.findUnique.mockResolvedValue(null as any);
 
       // Then
       const error = String({ errors: { 'email or password': ['is invalid'] } });
@@ -191,7 +193,8 @@ describe('AuthService', () => {
       };
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(mockedResponse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedResponse as any);
 
       // Then
       const error = String({ errors: { 'email or password': ['is invalid'] } });
@@ -216,7 +219,8 @@ describe('AuthService', () => {
       };
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(mockedResponse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedResponse as any);
 
       // Then
       await expect(getCurrentUser(id)).resolves.toHaveProperty('token');
@@ -245,7 +249,8 @@ describe('AuthService', () => {
       };
 
       // When
-      prismaMock.user.update.mockResolvedValue(mockedResponse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.update.mockResolvedValue(mockedResponse as any);
 
       // Then
       await expect(updateUser(user, user.id)).resolves.toHaveProperty('token');

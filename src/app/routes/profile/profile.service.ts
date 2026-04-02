@@ -16,7 +16,7 @@ export const getProfile = async (usernamePayload: string, id?: number) => {
     throw new HttpException(404, {});
   }
 
-  return profileMapper(profile, id);
+  return profileMapper(profile as any, id);
 };
 
 export const followUser = async (usernamePayload: string, id: number) => {
@@ -36,7 +36,7 @@ export const followUser = async (usernamePayload: string, id: number) => {
     },
   });
 
-  return profileMapper(profile, id);
+  return profileMapper(profile as any, id);
 };
 
 export const unfollowUser = async (usernamePayload: string, id: number) => {
@@ -56,5 +56,5 @@ export const unfollowUser = async (usernamePayload: string, id: number) => {
     },
   });
 
-  return profileMapper(profile, id);
+  return profileMapper(profile as any, id);
 };

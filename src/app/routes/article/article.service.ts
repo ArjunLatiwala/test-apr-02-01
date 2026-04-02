@@ -1,12 +1,20 @@
+import { Tag, User } from '@prisma/client';
 import slugify from 'slugify';
 import prisma from '../../../prisma/prisma-client';
 import HttpException from '../../models/http-exception.model';
 import profileMapper from '../profile/profile.utils';
 import articleMapper from './article.mapper';
-import { Tag } from '../tag/tag.model';
 
-const buildFindAllQuery = (query: any, id: number | undefined) => {
-  const queries: any = [];
+interface ArticleQuery {
+  author?: string;
+  tag?: string;
+  favorited?: string;
+  offset?: string;
+  limit?: string;
+}
+
+const buildFindAllQuery = (query: ArticleQuery, id: number | undefined) => {
+  const queries: unknown[] = [];
   const orAuthorQuery = [];
   const andAuthorQuery = [];
 
@@ -66,7 +74,7 @@ const buildFindAllQuery = (query: any, id: number | undefined) => {
   return queries;
 };
 
-export const getArticles = async (query: any, id?: number) => {
+export const getArticles = async (query: ArticleQuery, id?: number) => {
   const andQueries = buildFindAllQuery(query, id);
   const articlesCount = await prisma.article.count({
     where: {
@@ -105,6 +113,7 @@ export const getArticles = async (query: any, id?: number) => {
   });
 
   return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     articles: articles.map((article: any) => articleMapper(article, id)),
     articlesCount,
   };
@@ -154,12 +163,16 @@ export const getFeed = async (offset: number, limit: number, id: number) => {
   });
 
   return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     articles: articles.map((article: any) => articleMapper(article, id)),
     articlesCount,
   };
 };
 
-export const createArticle = async (article: any, id: number) => {
+export const createArticle = async (
+  article: { title: string; description: string; body: string; tagList?: string[] },
+  id: number,
+) => {
   const { title, description, body, tagList } = article;
   const tags = Array.isArray(tagList) ? tagList : [];
 
@@ -191,8 +204,6 @@ export const createArticle = async (article: any, id: number) => {
   }
 
   const {
-    authorId,
-    id: articleId,
     ...createdArticle
   } = await prisma.article.create({
     data: {
@@ -235,7 +246,7 @@ export const createArticle = async (article: any, id: number) => {
     },
   });
 
-  return articleMapper(createdArticle, id);
+  return articleMapper(createdArticle as any, id);
 };
 
 export const getArticle = async (slug: string, id?: number) => {
@@ -270,7 +281,7 @@ export const getArticle = async (slug: string, id?: number) => {
     throw new HttpException(404, { errors: { article: ['not found'] } });
   }
 
-  return articleMapper(article, id);
+  return articleMapper(article as any, id);
 };
 
 const disconnectArticlesTags = async (slug: string) => {
@@ -286,7 +297,11 @@ const disconnectArticlesTags = async (slug: string) => {
   });
 };
 
-export const updateArticle = async (article: any, slug: string, id: number) => {
+export const updateArticle = async (
+  article: { title?: string; body?: string; description?: string; tagList?: string[] },
+  slug: string,
+  id: number,
+) => {
   let newSlug = null;
 
   const existingArticle = await await prisma.article.findFirst({
@@ -379,7 +394,8 @@ export const updateArticle = async (article: any, slug: string, id: number) => {
     },
   });
 
-  return articleMapper(updatedArticle, id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return articleMapper(updatedArticle as any, id);
 };
 
 export const deleteArticle = async (slug: string, id: number) => {
@@ -457,13 +473,13 @@ export const getCommentsByArticle = async (slug: string, id?: number) => {
     },
   });
 
-  const result = comments?.comments.map((comment: any) => ({
+  const result = comments?.comments.map((comment) => ({
     ...comment,
     author: {
       username: comment.author.username,
       bio: comment.author.bio,
       image: comment.author.image,
-      following: comment.author.followedBy.some((follow: any) => follow.id === id),
+      following: comment.author.followedBy.some((follow: User) => follow.id === id),
     },
   }));
 
@@ -519,7 +535,7 @@ export const addComment = async (body: string, slug: string, id: number) => {
       username: comment.author.username,
       bio: comment.author.bio,
       image: comment.author.image,
-      following: comment.author.followedBy.some((follow: any) => follow.id === id),
+      following: comment.author.followedBy.some((follow: User) => follow.id === id),
     },
   };
 };
@@ -596,9 +612,9 @@ export const favoriteArticle = async (slugPayload: string, id: number) => {
 
   const result = {
     ...article,
-    author: profileMapper(article.author, id),
+    author: profileMapper(article.author as any, id),
     tagList: article?.tagList.map((tag: Tag) => tag.name),
-    favorited: article.favoritedBy.some((favorited: any) => favorited.id === id),
+    favorited: article.favoritedBy.some((favorited: User) => favorited.id === id),
     favoritesCount: _count?.favoritedBy,
   };
 
@@ -642,9 +658,9 @@ export const unfavoriteArticle = async (slugPayload: string, id: number) => {
 
   const result = {
     ...article,
-    author: profileMapper(article.author, id),
+    author: profileMapper(article.author as any, id),
     tagList: article?.tagList.map((tag: Tag) => tag.name),
-    favorited: article.favoritedBy.some((favorited: any) => favorited.id === id),
+    favorited: article.favoritedBy.some((favorited: User) => favorited.id === id),
     favoritesCount: _count?.favoritedBy,
   };
 

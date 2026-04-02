@@ -5,7 +5,11 @@ describe('ProfileUtils', () => {
     test('should return a profile', () => {
       // Given
       const user = {
+        id: 123,
         username: 'RealWorld',
+        email: 'realworld@me',
+        password: '1234',
+        demo: false,
         bio: 'My happy life',
         image: null,
         followedBy: [],
@@ -21,18 +25,29 @@ describe('ProfileUtils', () => {
       };
 
       // Then
-      expect(profileMapper(user, id)).toEqual(expected);
+      expect(profileMapper(user as any, id)).toEqual(expected);
     });
 
     test('should return a profile followed by the user', () => {
       // Given
       const user = {
+        id: 123,
         username: 'RealWorld',
+        email: 'realworld@me',
+        password: '1234',
+        demo: false,
         bio: 'My happy life',
         image: null,
         followedBy: [
           {
             id: 123,
+            username: 'RealWorld',
+            email: 'realworld@me',
+            password: '1234',
+            bio: null,
+            image: null,
+            token: '',
+            demo: false,
           },
         ],
       };
@@ -47,18 +62,29 @@ describe('ProfileUtils', () => {
       };
 
       // Then
-      expect(profileMapper(user, id)).toEqual(expected);
+      expect(profileMapper(user as any, id)).toEqual(expected);
     });
 
     test('should return a profile not followed by the user', () => {
       // Given
       const user = {
+        id: 456,
         username: 'RealWorld',
+        email: 'realworld@me',
+        password: '1234',
+        demo: false,
         bio: 'My happy life',
         image: null,
         followedBy: [
           {
+            id: 789,
             username: 'NotRealWorld',
+            email: 'notrealworld@me',
+            password: '1234',
+            bio: null,
+            image: null,
+            token: '',
+            demo: false,
           },
         ],
       };
@@ -73,7 +99,7 @@ describe('ProfileUtils', () => {
       };
 
       // Then
-      expect(profileMapper(user, id)).toEqual(expected);
+      expect(profileMapper(user as any, id)).toEqual(expected);
     });
   });
 });

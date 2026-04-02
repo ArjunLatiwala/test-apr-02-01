@@ -13,7 +13,7 @@ describe('ArticleService', () => {
       const idUser = 456;
 
       // When
-      // @ts-ignore
+      // @ts-expect-error: prismaMock is not perfectly typed for all relations
       prismaMock.comment.findFirst.mockResolvedValue(null);
 
       // Then
@@ -25,7 +25,6 @@ describe('ArticleService', () => {
     test('should return the favorited article', async () => {
       // Given
       const slug = 'How-to-train-your-dragon';
-      const username = 'RealWorld';
 
       const mockedUserResponse = {
         id: 123,
@@ -55,13 +54,16 @@ describe('ArticleService', () => {
           image: null,
           followedBy: [],
         },
+        _count: {
+          favoritedBy: 0,
+        },
       };
 
       // When
-      // @ts-ignore
-      prismaMock.user.findUnique.mockResolvedValue(mockedUserResponse);
-      // @ts-ignore
-      prismaMock.article.update.mockResolvedValue(mockedArticleResponse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedUserResponse as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).article.update.mockResolvedValue(mockedArticleResponse as any);
 
       // Then
       await expect(favoriteArticle(slug, mockedUserResponse.id)).resolves.toHaveProperty(
@@ -73,10 +75,9 @@ describe('ArticleService', () => {
       // Given
       const id = 123;
       const slug = 'how-to-train-your-dragon';
-      const username = 'RealWorld';
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      (prismaMock as any).user.findUnique.mockResolvedValue(null);
 
       // Then
       await expect(favoriteArticle(slug, id)).rejects.toThrowError();
@@ -86,7 +87,6 @@ describe('ArticleService', () => {
     test('should return the unfavorited article', async () => {
       // Given
       const slug = 'How-to-train-your-dragon';
-      const username = 'RealWorld';
 
       const mockedUserResponse = {
         id: 123,
@@ -116,11 +116,16 @@ describe('ArticleService', () => {
           image: null,
           followedBy: [],
         },
+        _count: {
+          favoritedBy: 0,
+        },
       };
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(mockedUserResponse);
-      prismaMock.article.update.mockResolvedValue(mockedArticleResponse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedUserResponse as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).article.update.mockResolvedValue(mockedArticleResponse as any);
 
       // Then
       await expect(unfavoriteArticle(slug, mockedUserResponse.id)).resolves.toHaveProperty(
@@ -132,10 +137,9 @@ describe('ArticleService', () => {
       // Given
       const id = 123;
       const slug = 'how-to-train-your-dragon';
-      const username = 'RealWorld';
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      (prismaMock as any).user.findUnique.mockResolvedValue(null);
 
       // Then
       await expect(unfavoriteArticle(slug, id)).rejects.toThrowError();

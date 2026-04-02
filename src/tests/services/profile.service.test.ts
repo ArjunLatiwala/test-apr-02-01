@@ -21,8 +21,8 @@ describe('ProfileService', () => {
       };
 
       // When
-      // @ts-ignore
-      prismaMock.user.findUnique.mockResolvedValue(mockedResponse);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedResponse as any);
 
       // Then
       await expect(getProfile(username, id)).resolves.toHaveProperty('following');
@@ -34,7 +34,7 @@ describe('ProfileService', () => {
       const id = 123;
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      (prismaMock as any).user.findUnique.mockResolvedValue(null);
 
       // Then
       await expect(getProfile(username, id)).rejects.toThrowError();
@@ -72,8 +72,8 @@ describe('ProfileService', () => {
       };
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(mockedAuthUser);
-      prismaMock.user.update.mockResolvedValue(mockedResponse);
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedAuthUser);
+      (prismaMock as any).user.update.mockResolvedValue(mockedResponse);
 
       // Then
       await expect(followUser(usernamePayload, id)).resolves.toHaveProperty('following');
@@ -85,7 +85,7 @@ describe('ProfileService', () => {
       const id = 123;
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      (prismaMock as any).user.findUnique.mockResolvedValue(null);
 
       // Then
       await expect(followUser(usernamePayload, id)).rejects.toThrowError();
@@ -123,8 +123,8 @@ describe('ProfileService', () => {
       };
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(mockedAuthUser);
-      prismaMock.user.update.mockResolvedValue(mockedResponse);
+      (prismaMock as any).user.findUnique.mockResolvedValue(mockedAuthUser);
+      (prismaMock as any).user.update.mockResolvedValue(mockedResponse);
 
       // Then
       await expect(unfollowUser(usernamePayload, id)).resolves.toHaveProperty('following');
@@ -136,7 +136,7 @@ describe('ProfileService', () => {
       const id = 123;
 
       // When
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      (prismaMock as any).user.findUnique.mockResolvedValue(null);
 
       // Then
       await expect(unfollowUser(usernamePayload, id)).rejects.toThrowError();

@@ -1,11 +1,11 @@
-import { User } from '../auth/user.model';
+import { User } from '@prisma/client';
 
-const authorMapper = (author: any, id?: number) => ({
+const authorMapper = (author: User & { followedBy: User[] }, id?: number) => ({
   username: author.username,
   bio: author.bio,
   image: author.image,
   following: id
-    ? author?.followedBy.some((followingUser: Partial<User>) => followingUser.id === id)
+    ? author?.followedBy.some((followingUser: User) => followingUser.id === id)
     : false,
 });
 
